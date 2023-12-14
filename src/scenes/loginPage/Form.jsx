@@ -1,12 +1,5 @@
 import { useState } from "react";
-import {
-  Box,
-  Button,
-  TextField,
-  useMediaQuery,
-  Typography,
-  useTheme,
-} from "@mui/material";
+import { Box, Button, TextField, useMediaQuery, Typography, useTheme } from "@mui/material";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import { Formik } from "formik";
 import * as yup from "yup";
@@ -62,13 +55,10 @@ const Form = () => {
     }
     formData.append("picturePath", values.picture.name);
 
-    const savedUserResponse = await fetch(
-      "http://localhost:3001/auth/register",
-      {
-        method: "POST",
-        body: formData,
-      }
-    );
+    const savedUserResponse = await fetch("https://server-social-media-app.vercel.app/auth/register", {
+      method: "POST",
+      body: formData,
+    });
     const savedUser = await savedUserResponse.json();
     onSubmitProps.resetForm();
 
@@ -78,19 +68,28 @@ const Form = () => {
   };
 
   const login = async (values, onSubmitProps) => {
-    const loggedInResponse = await fetch("http://localhost:3001/auth/login", {
+    const loggedInResponse = await fetch("https://server-social-media-app.vercel.app/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(values),
     });
+
+    if (!loggedInResponse.ok) {
+      const errorResponse = await loggedInResponse.json();
+      console.error("Error response:", errorResponse);
+      return;
+    }
+
     const loggedIn = await loggedInResponse.json();
+    console.log("loggedIn:", loggedIn);
+
     onSubmitProps.resetForm();
     if (loggedIn) {
       dispatch(
         setLogin({
           user: loggedIn.user,
           token: loggedIn.token,
-        })
+        }),
       );
       navigate("/home");
     }
@@ -102,21 +101,8 @@ const Form = () => {
   };
 
   return (
-    <Formik
-      onSubmit={handleFormSubmit}
-      initialValues={isLogin ? initialValuesLogin : initialValuesRegister}
-      validationSchema={isLogin ? loginSchema : registerSchema}
-    >
-      {({
-        values,
-        errors,
-        touched,
-        handleBlur,
-        handleChange,
-        handleSubmit,
-        setFieldValue,
-        resetForm,
-      }) => (
+    <Formik onSubmit={handleFormSubmit} initialValues={isLogin ? initialValuesLogin : initialValuesRegister} validationSchema={isLogin ? loginSchema : registerSchema}>
+      {({ values, errors, touched, handleBlur, handleChange, handleSubmit, setFieldValue, resetForm }) => (
         <form onSubmit={handleSubmit}>
           <Box
             display="grid"
@@ -134,9 +120,7 @@ const Form = () => {
                   onChange={handleChange}
                   value={values.firstName}
                   name="firstName"
-                  error={
-                    Boolean(touched.firstName) && Boolean(errors.firstName)
-                  }
+                  error={Boolean(touched.firstName) && Boolean(errors.firstName)}
                   helperText={touched.firstName && errors.firstName}
                   sx={{ gridColumn: "span 2" }}
                 />
@@ -166,32 +150,14 @@ const Form = () => {
                   onChange={handleChange}
                   value={values.occupation}
                   name="occupation"
-                  error={
-                    Boolean(touched.occupation) && Boolean(errors.occupation)
-                  }
+                  error={Boolean(touched.occupation) && Boolean(errors.occupation)}
                   helperText={touched.occupation && errors.occupation}
                   sx={{ gridColumn: "span 4" }}
                 />
-                <Box
-                  gridColumn="span 4"
-                  border={`1px solid ${palette.neutral.medium}`}
-                  borderRadius="5px"
-                  p="1rem"
-                >
-                  <Dropzone
-                    acceptedFiles=".jpg,.jpeg,.png"
-                    multiple={false}
-                    onDrop={(acceptedFiles) =>
-                      setFieldValue("picture", acceptedFiles[0])
-                    }
-                  >
+                <Box gridColumn="span 4" border={`1px solid ${palette.neutral.medium}`} borderRadius="5px" p="1rem">
+                  <Dropzone acceptedFiles=".jpg,.jpeg,.png" multiple={false} onDrop={(acceptedFiles) => setFieldValue("picture", acceptedFiles[0])}>
                     {({ getRootProps, getInputProps }) => (
-                      <Box
-                        {...getRootProps()}
-                        border={`2px dashed ${palette.primary.main}`}
-                        p="1rem"
-                        sx={{ "&:hover": { cursor: "pointer" } }}
-                      >
+                      <Box {...getRootProps()} border={`2px dashed ${palette.primary.main}`} p="1rem" sx={{ "&:hover": { cursor: "pointer" } }}>
                         <input {...getInputProps()} />
                         {!values.picture ? (
                           <p>Add Picture Here</p>
@@ -260,9 +226,7 @@ const Form = () => {
                 },
               }}
             >
-              {isLogin
-                ? "Don't have an account? Sign Up here."
-                : "Already have an account? Login here."}
+              {isLogin ? "Don't have an account? Sign Up here." : "Already have an account? Login here."}
             </Typography>
           </Box>
         </form>
